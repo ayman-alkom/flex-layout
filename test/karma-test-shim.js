@@ -1,4 +1,5 @@
 /*global jasmine, __karma__, window*/
+
 Error.stackTraceLimit = Infinity;
 
 // The default time that jasmine waits for an asynchronous test to finish is five seconds.
@@ -47,6 +48,10 @@ System.config({
       'node:@angular/platform-browser-dynamic/bundles/platform-browser-dynamic.umd.js',
     '@angular/platform-browser-dynamic/testing':
       'node:@angular/platform-browser-dynamic/bundles/platform-browser-dynamic-testing.umd.js',
+    '@angular/platform-server':
+      'node:@angular/platform-server/bundles/platform-server.umd.js',
+    '@angular/platform-server/testing':
+      'node:@angular/platform-server/bundles/platform-server-testing.umd.js',
 
     '@angular/material': 'node:@angular/material/bundles/material.umd.js',
     '@angular/cdk': 'node:@angular/cdk/bundles/cdk.umd.js',
@@ -83,9 +88,13 @@ System.config({
 });
 
 // Configure the Angular test bed and run all specs once configured.
- configureTestBed()
+configureTestBed(false)
   .then(runSpecs)
   .then(__karma__.start, __karma__.error);
+
+// configureTestBed(true)
+//   .then(runSpecs)
+//   .then(__karma__.start, __karma__.error);
 
 
 /** Runs the specs in Karma. */
@@ -102,17 +111,19 @@ function isSpecFile(path) {
 }
 
 /** Configures Angular's TestBed. */
-function configureTestBed() {
+function configureTestBed(testServer) {
   return Promise.all([
     System.import('@angular/core/testing'),
-    System.import('@angular/platform-browser-dynamic/testing')
+    System.import('@angular/platform-browser-dynamic/testing'),
+    // System.import('@angular/platform-server/testing'),
   ]).then(function (providers) {
     var testing = providers[0];
     var testingBrowser = providers[1];
+    var testingServer = providers[2];
 
     var testBed = testing.TestBed.initTestEnvironment(
-      testingBrowser.BrowserDynamicTestingModule,
-      testingBrowser.platformBrowserDynamicTesting()
+      testServer ? testingServer.ServerTestingModule : testingBrowser.BrowserDynamicTestingModule,
+      testServer ? testingServer.platformServerTesting() : testingBrowser.platformBrowserDynamicTesting()
     );
 
     patchTestBedToDestroyFixturesAfterEveryTest(testBed);
